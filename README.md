@@ -24,35 +24,37 @@ dataset, archive, repository or measurement campaign.
 
 ## Why it is interesting
 
-Fitting a sum of exponentials is textbook. Knowing *how much the fit is worth* is
-not. A component whose lifetime exceeds its observation window has barely begun to
-decay before the measurement stops, and its amplitude and lifetime trade off
-almost freely. A component shorter than a few sampling intervals is gone before
-the first points. Under heavy noise everything loosens.
+Decomposing a trace into exponentials is textbook. Knowing **which components the
+measurement can actually support a claim about** is not. A component whose lifetime
+exceeds its observation window has barely begun to decay before the measurement
+stops; one shorter than a few sampling intervals is gone before the first points;
+two with similar lifetimes cannot be told apart at all. Every component is labelled
+`resolved`, `confounded` or `unobservable` accordingly.
 
-**Of the 18,000 components, 5,819 have a lifetime longer than their own
-observation window and 1,125 decay within the first three samples.** Well over a third
-sit in a regime where the data constrains them only weakly — and neither the
-window nor the noise level is published, so which third is a judgement to be made
-from the trace.
+| Label | Count | Share |
+|---|---:|---:|
+| resolved | 10,130 | 56.3% |
+| confounded | 5,424 | 30.1% |
+| unobservable | 2,446 | 13.6% |
 
-Each parameter is assigned to one of a fixed set of bins — 12 log-spaced for
-lifetimes, 8 linear for amplitudes, all close to equally occupied. Scoring a
-predicted *set* of bins, where naming the exact bin scores 1, naming every bin
-scores 0, and excluding the true bin scores 0:
+Neither the window nor the noise level is published, so all three inputs to that
+judgement have to be inferred from the trace.
 
-| Method | Score |
+Scored by Cohen's kappa over all components:
+
+| Method | Kappa |
 |---|---|
-| Exact bin for every parameter | 1.0000 |
-| Correct bin plus its two neighbours | 0.7916 |
-| Tuned classical fit, bins spanned by its confidence interval | **0.3630** |
-| A single random bin | 0.1003 |
-| Every bin | 0.0000 |
+| Perfect | 1.0000 |
+| Oracle labels with 20% randomised | 0.7624 |
+| Gradient boosting on distilled features | **0.3281** |
+| Tuned classical heuristic | 0.0481 |
+| Random at class frequencies | 0.0263 |
+| Uniform random, or all resolved | 0.0000 |
 
-A least-squares fit converges on all 1,000 test cases and still reaches only
-0.3630, because its confidence intervals are unreliable exactly where the problem
-is ill-conditioned. Sweeping the confidence multiplier does not rescue it:
-widening covers the degenerate cases and destroys the well-determined ones.
+The classical heuristic sits at chance: a decomposition's own reported precision is
+unreliable in exactly the regimes that make a component hard to resolve. A learned
+classifier over the same outputs reaches 0.3281 on 1,500 training cases, so the
+signal is there — it simply is not where the textbook points.
 
 ## Files
 

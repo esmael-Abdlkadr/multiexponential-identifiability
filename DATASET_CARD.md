@@ -1,4 +1,4 @@
-# Multi-Exponential Relaxation Traces with Case-Dependent Identifiability
+# Multi-Exponential Relaxation Traces Labelled by Component Resolvability
 
 ## Overview
 
@@ -71,6 +71,10 @@ One record per case:
 | `window` | float | Observation length. Held back from solvers |
 | `sigma` | float | Noise standard deviation. Held back from solvers |
 
+The resolvability label of each component is derived from these four fields by the
+rule given below, so the dataset carries both the generating parameters and the
+labels they imply.
+
 ## Construction
 
 Lifetimes are drawn log-uniformly on `[0.05, 60]` and sorted ascending;
@@ -95,32 +99,50 @@ synthesise each trace.
 - Case identifiers are opaque hashes and encode nothing about the answer
 - Deterministic regeneration verified by SHA-256 over all traces
 
+## Component Labels
+
+Every component carries a label describing what the measurement can support:
+
+| Label | Meaning | Count | Share |
+|---|---|---:|---:|
+| `0` resolved | The trace pins this component down | 10,130 | 56.3% |
+| `1` confounded | Too close in lifetime to a neighbour to separate | 5,424 | 30.1% |
+| `2` unobservable | Buried in noise, gone before the first samples, or barely decayed when the window ends | 2,446 | 13.6% |
+
+A component is `unobservable` when its lifetime is under three sampling intervals,
+its amplitude-to-noise ratio is below 1, or it has decayed less than 10% by the
+end of the window. It is `confounded` when its nearest neighbour lies within 0.7
+in log-lifetime. Otherwise it is `resolved`. All three inputs to that rule — the
+window, the noise level, the neighbouring lifetimes — are hidden from solvers.
+
+21 of the 27 possible label triples occur in the data.
+
 ## Difficulty
 
-Each parameter falls in one of a fixed set of bins — 12 log-spaced for lifetimes,
-8 linear for amplitudes, all close to equally occupied. Scoring a predicted *set*
-of bins, where naming the exact bin scores 1, naming every bin scores 0, and
-excluding the true bin scores 0:
+Scored by Cohen's kappa over all components, which corrects for chance:
 
-| Method | Score |
+| Method | Kappa |
 |---|---|
-| Exact bin for every parameter | 1.0000 |
-| Correct bin plus its two neighbours | 0.7916 |
-| **Tuned classical fit, bins spanned by its confidence interval** | **0.3630** |
-| A single random bin | 0.1003 |
-| Every bin | 0.0000 |
+| Perfect | 1.0000 |
+| Oracle labels with 20% noise | 0.7624 |
+| **Gradient boosting on features distilled from a curve decomposition** | **0.3281** |
+| Tuned classical heuristic (decompose, then judge from reported precision) | 0.0481 |
+| Random at the class frequencies | 0.0263 |
+| Uniform random, or calling every component resolved | 0.0000 |
 
-The classical fit converges on all cases, and still reaches only 0.3630, because
-its confidence intervals are unreliable exactly where the problem is
-ill-conditioned. Sweeping the confidence multiplier does not rescue it: widening
-covers the degenerate cases and destroys the well-determined ones.
+The classical heuristic sits at chance. Reading resolvability off a decomposition's
+own reported precision does not work, because that precision is unreliable in
+exactly the regimes that make a component hard to resolve. A learned classifier
+over the same outputs reaches 0.3281 using only 1,500 training cases and eleven
+hand-built features, so the signal is there — it simply is not where the textbook
+points.
 
 ## Intended Challenge Use
 
-A challenge can withhold `tau`, `amp`, `window` and `sigma`, and ask which bins
-each parameter could lie in. The task is then not estimation but **calibrated
-self-assessment**: naming one bin where the trace pins a parameter down and
-several where it genuinely does not, without being told which case is which.
+A challenge can withhold the parameters, the window and the noise level, and ask
+only for the three labels. The task is then not estimation but **judging what a
+measurement can support** — a categorical decision about the observation rather
+than a quantity read out of it.
 
 ## License
 

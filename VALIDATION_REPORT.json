@@ -7,32 +7,27 @@
   "test_over_train_ratio": 0.2,
   "samples_per_trace": 256,
   "components_per_case": 3,
-  "tau_bins": 12,
-  "amp_bins": 8,
-  "tau_bin_occupancy": [
-    1502,
-    1445,
-    1528,
-    1498,
-    1533,
-    1535,
-    1522,
-    1476,
-    1475,
-    1482,
-    1494,
-    1510
+  "classes": [
+    "resolved",
+    "confounded",
+    "unobservable"
   ],
-  "amp_bin_occupancy": [
-    2290,
-    2240,
-    2257,
-    2261,
-    2234,
-    2230,
-    2195,
-    2293
+  "class_counts": [
+    10130,
+    5424,
+    2446
   ],
+  "class_shares": [
+    0.5628,
+    0.3013,
+    0.1359
+  ],
+  "distinct_class_triples_observed": 21,
+  "class_definition": {
+    "unobservable": "lifetime under three sampling intervals, or amplitude/sigma < 1, or less than 10% decayed within the window",
+    "confounded": "nearest neighbour within 0.7 in log-lifetime",
+    "resolved": "neither of the above"
+  },
   "window_range": [
     1.501,
     11.999
@@ -41,8 +36,6 @@
     0.05001,
     0.79957
   ],
-  "components_slower_than_their_window": 5819,
-  "components_faster_than_three_samples": 1125,
   "window_and_sigma_disclosed": false,
   "all_traces_finite": true,
   "duplicate_case_ids": 0,
@@ -53,12 +46,14 @@
   "generation": "sum of three exponentials, additive Gaussian noise, seed 20260905",
   "deterministic": true,
   "trace_sha256": "036b1ba8b7dc5cdb474e774535bbcabd15722eddfb1f67814c8efa3e7fafd8ff",
-  "metric": "mean set score over 6 parameters; naming the exact bin = 1, naming every bin = 0, excluding the true bin = 0",
+  "metric": "Cohen's kappa over all scored components; chance and constant predictions score 0",
   "scored_baselines": {
-    "exact_bins_oracle": 1.0,
-    "oracle_plus_minus_one_bin": 0.7916,
-    "tuned_classical_fit": 0.363,
-    "single_random_bin": 0.1003,
-    "all_bins": 0.0
+    "perfect": 1.0,
+    "oracle_with_20pct_label_noise": 0.7624,
+    "gradient_boosting_on_fit_features": 0.3281,
+    "tuned_classical_heuristic": 0.0481,
+    "prior_frequency_random": 0.0263,
+    "uniform_random": 0.0,
+    "all_resolved": 0.0
   }
 }
