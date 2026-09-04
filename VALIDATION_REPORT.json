@@ -7,24 +7,42 @@
   "test_over_train_ratio": 0.2,
   "samples_per_trace": 256,
   "components_per_case": 3,
-  "lifetime_range": [
-    0.05,
-    59.9899
+  "tau_bins": 12,
+  "amp_bins": 8,
+  "tau_bin_occupancy": [
+    1502,
+    1445,
+    1528,
+    1498,
+    1533,
+    1535,
+    1522,
+    1476,
+    1475,
+    1482,
+    1494,
+    1510
   ],
-  "amplitude_range": [
-    0.3,
-    1.9999
+  "amp_bin_occupancy": [
+    2290,
+    2240,
+    2257,
+    2261,
+    2234,
+    2230,
+    2195,
+    2293
   ],
   "window_range": [
-    2.003,
-    29.998
+    1.501,
+    11.999
   ],
   "noise_sigma_range": [
-    0.005,
-    0.29976
+    0.05001,
+    0.79957
   ],
-  "components_slower_than_their_window": 3783,
-  "components_faster_than_three_samples": 2961,
+  "components_slower_than_their_window": 5819,
+  "components_faster_than_three_samples": 1125,
   "window_and_sigma_disclosed": false,
   "all_traces_finite": true,
   "duplicate_case_ids": 0,
@@ -34,15 +52,13 @@
   ],
   "generation": "sum of three exponentials, additive Gaussian noise, seed 20260905",
   "deterministic": true,
-  "trace_sha256": "32a4a9af06bef23150ec5834c4b366f5ed9ccd08e8f2e9c1d568c8d7a7ce6c17",
-  "metric": "mean normalised Winkler interval score at nominal 80%, prior range = 0",
+  "trace_sha256": "036b1ba8b7dc5cdb474e774535bbcabd15722eddfb1f67814c8efa3e7fafd8ff",
+  "metric": "mean set score over 6 parameters; naming the exact bin = 1, naming every bin = 0, excluding the true bin = 0",
   "scored_baselines": {
-    "near_exact_oracle": 0.9927,
-    "oracle_centre_2x_wide": 0.6669,
-    "tuned_classical_fit_plus_asymptotic_CI": 0.4645,
-    "global_mean_point_estimate": 0.0963,
-    "prior_range_sample_submission": 0.0
-  },
-  "classical_baseline_coverage": 0.714,
-  "nominal_coverage": 0.8
+    "exact_bins_oracle": 1.0,
+    "oracle_plus_minus_one_bin": 0.7916,
+    "tuned_classical_fit": 0.363,
+    "single_random_bin": 0.1003,
+    "all_bins": 0.0
+  }
 }

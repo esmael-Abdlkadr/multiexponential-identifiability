@@ -29,11 +29,11 @@ This is synthetic data with a reproducible generator, included as `generate.py`.
 - 256 samples per trace
 - Lifetimes span 0.05 to 60, log-uniform
 - Amplitudes span 0.3 to 2.0
-- Observation windows span 2.0 to 30.0, varying per case
-- Noise standard deviation spans 0.005 to 0.30, log-uniform, undisclosed
+- Observation windows span 1.5 to 12.0, varying per case
+- Noise standard deviation spans 0.05 to 0.80, log-uniform, undisclosed
 
-**Of the 18,000 components, 3,783 have a lifetime longer than their own
-observation window and 2,961 decay within the first three samples.** Roughly a
+**Of the 18,000 components, 5,819 have a lifetime longer than their own
+observation window and 1,125 decay within the first three samples.** Well over a
 third of all components are therefore in a regime where the data constrains them
 only weakly, and which third depends on the case.
 
@@ -75,7 +75,7 @@ One record per case:
 
 Lifetimes are drawn log-uniformly on `[0.05, 60]` and sorted ascending;
 amplitudes uniformly on `[0.3, 2.0]`; the observation window uniformly on
-`[2, 30]`; the noise standard deviation log-uniformly on `[0.005, 0.30]`. The
+`[1.5, 12]`; the noise standard deviation log-uniformly on `[0.05, 0.80]`. The
 trace is 256 evenly spaced samples of the clean sum plus independent Gaussian
 noise.
 
@@ -97,30 +97,30 @@ synthesise each trace.
 
 ## Difficulty
 
-Measured on the test split, scoring interval predictions by the normalised
-Winkler interval score at nominal 80% (reporting the prior range scores 0):
+Each parameter falls in one of a fixed set of bins — 12 log-spaced for lifetimes,
+8 linear for amplitudes, all close to equally occupied. Scoring a predicted *set*
+of bins, where naming the exact bin scores 1, naming every bin scores 0, and
+excluding the true bin scores 0:
 
 | Method | Score |
 |---|---|
-| Near-exact oracle, plus or minus 1% | 0.9927 |
-| Oracle centre, intervals twice as wide as needed | 0.6669 |
-| **Tuned classical fit with asymptotic confidence intervals** | **0.4645** |
-| Global mean point estimate | 0.0963 |
-| Prior range | 0.0000 |
+| Exact bin for every parameter | 1.0000 |
+| Correct bin plus its two neighbours | 0.7916 |
+| **Tuned classical fit, bins spanned by its confidence interval** | **0.3630** |
+| A single random bin | 0.1003 |
+| Every bin | 0.0000 |
 
-The classical approach is not merely beaten, it is **miscalibrated**: its
-intervals cover the truth 71.4% of the time against a nominal 80%, because
-asymptotic confidence intervals are unreliable exactly where the problem is
-ill-conditioned. No single global widening fixes this — widening rescues the
-degenerate cases and ruins the well-determined ones.
+The classical fit converges on all cases, and still reaches only 0.3630, because
+its confidence intervals are unreliable exactly where the problem is
+ill-conditioned. Sweeping the confidence multiplier does not rescue it: widening
+covers the degenerate cases and destroys the well-determined ones.
 
 ## Intended Challenge Use
 
-A challenge can withhold `tau`, `amp`, `window` and `sigma`, and ask for an
-interval per parameter. The task is then not estimation but **calibrated
-self-assessment**: reporting narrow intervals where the trace pins a parameter
-down and wide ones where it genuinely does not, without being told which case is
-which.
+A challenge can withhold `tau`, `amp`, `window` and `sigma`, and ask which bins
+each parameter could lie in. The task is then not estimation but **calibrated
+self-assessment**: naming one bin where the trace pins a parameter down and
+several where it genuinely does not, without being told which case is which.
 
 ## License
 
