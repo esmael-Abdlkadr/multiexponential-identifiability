@@ -144,6 +144,11 @@ only for the three labels. The task is then not estimation but **judging what a
 measurement can support** — a categorical decision about the observation rather
 than a quantity read out of it.
 
+It suits a **from-scratch** challenge in particular. These traces are a synthetic
+signal family that no public checkpoint has seen: there is no backbone to fine-tune
+and no embedding to borrow, so an architecture has to be designed and trained from
+random initialisation on the provided data alone.
+
 ## License
 
 CC0 1.0 Universal (Public Domain Dedication) —
