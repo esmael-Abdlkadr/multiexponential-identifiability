@@ -1,0 +1,19 @@
+CC0 1.0 Universal (Public Domain Dedication)
+https://creativecommons.org/publicdomain/zero/1.0/
+
+SOURCE
+------
+This dataset is original and fully synthetic. It is not derived from, sampled
+from, or transformed from any existing dataset, archive, repository or
+measurement campaign. Every value is produced by the included generator,
+generate.py, under seed 20260905.
+
+Because there is no upstream dataset, there is no upstream licence and no
+third-party attribution is owed. The source record for this dataset is:
+
+  https://github.com/esmael-Abdlkadr/multiexponential-identifiability
+
+LICENCE
+-------
+Dedicated to the public domain under CC0 1.0 Universal, permitting unrestricted
+use including commercial use. Contains no third-party data and no personal data.

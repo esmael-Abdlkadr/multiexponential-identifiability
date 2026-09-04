@@ -1,0 +1,131 @@
+# Multi-Exponential Relaxation Traces with Case-Dependent Identifiability
+
+## Overview
+
+Each case is one noisy observation of a relaxing system: a sum of three
+exponential decays, sampled on a finite window, with additive Gaussian noise.
+
+```
+y(t) = sum_k A_k exp(-t / tau_k) + eps,    eps ~ N(0, sigma^2)
+```
+
+The point of the dataset is not the curve fit. It is that **how much the data
+determines about each parameter varies enormously from case to case, and nothing
+in the observation states it.** A component whose lifetime exceeds the
+observation window has barely begun to decay, and its amplitude and lifetime
+trade off almost freely. A component shorter than a few sampling intervals is
+gone before the first points. Under heavy noise everything loosens. The generator
+spans all of these regimes deliberately.
+
+Neither the observation window nor the noise level is published as a label. Both
+are visible only through the trace itself.
+
+This is synthetic data with a reproducible generator, included as `generate.py`.
+
+## Number of Rows
+
+- 6,000 independent cases (5,000 train / 1,000 test)
+- 3 exponential components per case
+- 256 samples per trace
+- Lifetimes span 0.05 to 60, log-uniform
+- Amplitudes span 0.3 to 2.0
+- Observation windows span 2.0 to 30.0, varying per case
+- Noise standard deviation spans 0.005 to 0.30, log-uniform, undisclosed
+
+**Of the 18,000 components, 3,783 have a lifetime longer than their own
+observation window and 2,961 decay within the first three samples.** Roughly a
+third of all components are therefore in a regime where the data constrains them
+only weakly, and which third depends on the case.
+
+## File Structure
+
+```
+traces/case_<id>.npz     6,000 files, one per case
+truth.json               generating parameters for every case
+generate.py              the generator, deterministic under seed 20260905
+DATASET_CARD.md
+VALIDATION_REPORT.json
+LICENSE
+```
+
+## Feature Table
+
+### `traces/case_<id>.npz`
+
+| Array | Type | Shape | Description |
+|---|---|---|---|
+| `t` | float32 | `(256,)` | Sample times, from 0 to the case's window length |
+| `y` | float32 | `(256,)` | The observed signal at those times |
+
+Nothing else is stored. The noise level is not recorded in the file.
+
+### `truth.json`
+
+One record per case:
+
+| Field | Type | Description |
+|---|---|---|
+| `case_id` | string | Opaque case identifier |
+| `tau` | list of 3 floats | Lifetimes, ascending. Sorting removes any labelling ambiguity |
+| `amp` | list of 3 floats | Amplitudes, in the same order as `tau` |
+| `window` | float | Observation length. Held back from solvers |
+| `sigma` | float | Noise standard deviation. Held back from solvers |
+
+## Construction
+
+Lifetimes are drawn log-uniformly on `[0.05, 60]` and sorted ascending;
+amplitudes uniformly on `[0.3, 2.0]`; the observation window uniformly on
+`[2, 30]`; the noise standard deviation log-uniformly on `[0.005, 0.30]`. The
+trace is 256 evenly spaced samples of the clean sum plus independent Gaussian
+noise.
+
+Every draw derives from a SHA-256 hash of the case identifier and the global seed
+20260905, so the dataset regenerates byte for byte.
+
+No human annotation, no language-model annotation, no pseudo-labeling and no
+model-generated content is used anywhere. Labels are the exact parameters used to
+synthesise each trace.
+
+## Quality Checks
+
+- 6,000 cases, 6,000 trace files, no duplicate identifiers
+- All traces finite float32 of length 256
+- Lifetimes stored ascending in every record
+- Window and noise level never exposed to solvers
+- Case identifiers are opaque hashes and encode nothing about the answer
+- Deterministic regeneration verified by SHA-256 over all traces
+
+## Difficulty
+
+Measured on the test split, scoring interval predictions by the normalised
+Winkler interval score at nominal 80% (reporting the prior range scores 0):
+
+| Method | Score |
+|---|---|
+| Near-exact oracle, plus or minus 1% | 0.9927 |
+| Oracle centre, intervals twice as wide as needed | 0.6669 |
+| **Tuned classical fit with asymptotic confidence intervals** | **0.4645** |
+| Global mean point estimate | 0.0963 |
+| Prior range | 0.0000 |
+
+The classical approach is not merely beaten, it is **miscalibrated**: its
+intervals cover the truth 71.4% of the time against a nominal 80%, because
+asymptotic confidence intervals are unreliable exactly where the problem is
+ill-conditioned. No single global widening fixes this — widening rescues the
+degenerate cases and ruins the well-determined ones.
+
+## Intended Challenge Use
+
+A challenge can withhold `tau`, `amp`, `window` and `sigma`, and ask for an
+interval per parameter. The task is then not estimation but **calibrated
+self-assessment**: reporting narrow intervals where the trace pins a parameter
+down and wide ones where it genuinely does not, without being told which case is
+which.
+
+## License
+
+CC0 1.0 Universal (Public Domain Dedication) —
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Entirely synthetic, generated by the included script, containing no third-party
+data and no personal data.
