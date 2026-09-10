@@ -1,12 +1,8 @@
-# Multi-Exponential Relaxation Traces with Case-Dependent Identifiability
+# Multi-Exponential Relaxation Traces Labelled by Estimator Recovery
 
-Documentation and provenance record for a synthetic dataset built to study a
-specific question: **when can you tell how much a measurement actually
-determines?**
+Documentation and provenance record for a synthetic dataset built to study one question: **will a standard estimator actually recover each component of a decaying signal from a single measurement?**
 
-**This repository is the canonical source record for the dataset.** The dataset is
-original — not derived from, sampled from, or transformed from any existing
-dataset, archive, repository or measurement campaign.
+**This repository is the canonical source record for the dataset.** The dataset is original — not derived from, sampled from, or transformed from any existing dataset, archive, repository or measurement campaign.
 
 ## What the dataset contains
 
@@ -14,88 +10,57 @@ dataset, archive, repository or measurement campaign.
 |---|---|
 | Cases | 6,000 (5,000 train / 1,000 test) |
 | Components per case | 3 exponential decays |
-| Acquisitions per case | 16 repeated measurements of the same system |
+| Released acquisitions per case | 16 repeated measurements of the same system |
+| Withheld acquisitions per case | 129, used only to measure the labels |
 | Samples per acquisition | 256 |
 | Lifetimes | 0.05 to 60, log-uniform, reported ascending |
 | Amplitudes | 0.3 to 2.0 |
 | Observation window | 1.5 to 12, varies per case, **not disclosed** |
 | Noise sigma | 0.05 to 0.80, log-uniform, **not disclosed** |
 | Storage | float16; rounding error under 4% of the smallest noise level |
-| Size | 49 MB |
 | Licence | CC0 1.0 Universal |
 
-## Why it is interesting
+## The labels
 
-Decomposing a trace into exponentials is textbook. Knowing **which components a
-measurement can actually support a claim about** is not. A component whose lifetime
-exceeds its observation window has barely begun to decay before the measurement
-stops; one shorter than a few sampling intervals is gone before the first points;
-two with similar lifetimes cannot be told apart at all. Every component is labelled
-`resolved`, `confounded` or `unobservable` according to what a **single**
-acquisition supports.
+Each component's label is **what a fixed reference estimator was observed to do** on single acquisitions of that system — not a threshold on its parameters. A non-negative least-squares lifetime spectrum is fitted to each of 129 withheld acquisitions, and every true component is scored per draw as **resolved** (a peak within 25% in lifetime and 50% in amplitude, closest to it), **confounded** (its nearest peak belongs to a neighbour) or **unobservable** (neither). The label is the most frequent outcome.
 
 | Label | Count | Share |
 |---|---:|---:|
-| resolved | 10,227 | 56.8% |
-| confounded | 5,221 | 29.0% |
-| unobservable | 2,552 | 14.2% |
+| resolved | 3,309 | 18.4% |
+| confounded | 6,577 | 36.5% |
+| unobservable | 8,114 | 45.1% |
 
-Neither the window nor the noise level is published, so all three inputs to that
-judgement have to be inferred from the signal.
-
-Each case carries sixteen acquisitions because a single one is not enough to decide
-the hard cases. On one acquisition, about a fifth of all components sit so close to
-a decision boundary that noise has erased the distinction, and every competent
-approach converges on the same score. Repeated acquisitions move those components
-back into the decidable range — but only for a method that uses them.
+These labels agree with a fixed-threshold labelling of the true parameters only at kappa 0.1406: estimator behaviour depends jointly on the whole configuration of a case, not on any single cut-off.
 
 Scored by Cohen's kappa over all components, on the release as shipped:
 
 | Method | Kappa |
 |---|---|
 | Perfect | 1.0000 |
-| **NNLS lifetime spectrum + per-acquisition noise level, gradient boosting, all 16 acquisitions** | **0.5797** |
-| Summary statistics of the averaged acquisitions | 0.4533 |
-| The same gradient-boosting model given only the first acquisition | 0.4285 |
-| Estimate the parameters, then apply the labelling rule | 0.2052 |
-| Random at class frequencies | 0.0020 |
+| **NNLS spectrum + per-acquisition noise level, gradient boosting, all 16 acquisitions** | **0.5086** |
+| Summary statistics of the averaged acquisitions | 0.3729 |
+| The same model given only the first acquisition | 0.4156 |
+| The estimator on each released acquisition, most frequent outcome, no learning | 0.2064 |
+| Fixed cut-offs on fitted parameters | 0.0606 |
+| Random at class frequencies | 0.0224 |
 | All resolved | 0.0000 |
-
-Using the sixteen acquisitions is worth 0.1512 on identical cases — about ten
-bootstrap standard errors. Fitting the parameters and thresholding them stays low:
-sixteen acquisitions pin the noise level to 0.8%, but neighbouring lifetimes and
-amplitudes remain ill-conditioned (34.5% and 51.7% median relative error).
 
 ## Files
 
-- [`DATASET_CARD.md`](DATASET_CARD.md) — schema, construction, labelling rule, quality checks
+- [`DATASET_CARD.md`](DATASET_CARD.md) — schema, construction, label procedure, quality checks
 - [`VALIDATION_REPORT.json`](VALIDATION_REPORT.json) — machine-readable self-audit, including the leak audit
-- [`generate.py`](generate.py) — the generator, keyed to a withheld secret
+- [`generate.py`](generate.py) — the generator and label procedure, keyed to a withheld secret
 - [`LICENSE`](LICENSE) — CC0 1.0 Universal
 
 ## Generator
 
-The generator is published here, and it is keyed to a secret that is not. Every
-draw — the parameters, the noise, and the case identifiers — derives from
-`HMAC-SHA256(secret, "<purpose>:<case>")`. Running it produces valid data from this
-family; it does not reproduce the released dataset, and so discloses nothing about
-any benchmark built on it.
+The generator is published here, and it is keyed to a secret that is not. Every draw — the parameters, the released noise, the withheld label draws and the case identifiers — derives from `HMAC-SHA256(secret, "<purpose>:<case>")`. Running it produces valid data from this family; it does not reproduce the released dataset or its labels.
 
-An earlier version of this dataset derived every draw from a seed stated in its
-documentation. That was reproducible from public material: the released test
-identifiers, fed to the generator, regenerated every test trace exactly, and the
-labelling rule applied to the recovered parameters scored 1.0000. That construction
-is retired. The current one was audited against every attack available from public
-material — including enumerating identifiers and matching traces by content — and
-all of them score at chance, while the same attacks run with the real secret recover
-every test trace. The numbers are in `VALIDATION_REPORT.json`, which also records a
-SHA-256 over all released traces so the dataset's integrity can be checked.
+Audited against every attack available from public material — the earlier published-seed generator on the released identifiers, the keyed generator under guessed keys, and enumerating identifiers to match traces by content — every attack scores inside chance (0.0591 ± 0.0133 for shuffled labels) with 0 content matches, while the same harness given the real secret reproduces every test label and trace. The numbers are in `VALIDATION_REPORT.json`.
 
 ## Provenance
 
-No human annotation, no language-model annotation, no pseudo-labeling and no
-model-generated content is used anywhere. Labels follow from the exact parameters
-used to synthesise each case, by a fixed rule stated in `DATASET_CARD.md`.
+No human annotation, no language-model annotation, no pseudo-labeling and no model-generated content is used anywhere. Labels follow deterministically from the generating parameters, the keyed withheld draws and the stated estimator.
 
 ## Licence
 

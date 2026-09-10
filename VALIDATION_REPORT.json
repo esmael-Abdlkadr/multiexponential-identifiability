@@ -16,29 +16,31 @@
     "unobservable"
   ],
   "class_counts": [
-    10227,
-    5221,
-    2552
+    3309,
+    6577,
+    8114
   ],
   "class_shares": [
-    0.5682,
-    0.2901,
-    0.1418
+    0.1838,
+    0.3654,
+    0.4508
   ],
-  "distinct_class_triples_observed": 21,
-  "class_definition": {
-    "unobservable": "lifetime under three sampling intervals, or amplitude below one noise standard deviation of a single acquisition, or less than 10% decayed within the window",
-    "confounded": "nearest neighbour within 0.7 in log-lifetime",
-    "resolved": "neither of the above"
+  "distinct_class_triples_observed": 27,
+  "label_definition": {
+    "reference_estimator": "non-negative least squares on 72 log-spaced lifetimes 0.02-200 plus a constant; adjacent non-zero weights grouped into peaks; three largest peaks by amplitude kept",
+    "resolved": "nearest estimated peak within 25% in lifetime and 50% in amplitude, and nearer to this component than to any other",
+    "confounded": "nearest estimated peak nearer to a neighbouring component",
+    "unobservable": "neither",
+    "label": "most frequent outcome over the withheld draws; ties to the less resolvable class",
+    "withheld_draws_per_case": 129,
+    "tied_components": 147
   },
-  "window_range": [
-    1.501,
-    11.999
-  ],
-  "noise_sigma_range": [
-    0.05,
-    0.7996
-  ],
+  "label_stability_600_cases": {
+    "two_128_draw_labellings_kappa": 0.8443,
+    "128_vs_256_draw_label_kappa": 0.919,
+    "components_decided_by_under_10_points": 0.2
+  },
+  "agreement_with_fixed_threshold_labels_kappa": 0.1406,
   "window_and_sigma_disclosed": false,
   "all_traces_finite": true,
   "duplicate_case_ids": 0,
@@ -46,31 +48,42 @@
     "t",
     "y"
   ],
-  "generation": "sum of three exponentials, additive Gaussian noise, sixteen acquisitions per case; every draw keyed by HMAC-SHA256 to a withheld secret",
+  "generation": "sum of three exponentials, additive Gaussian noise, sixteen released acquisitions and 129 withheld label draws per case; every draw keyed by HMAC-SHA256 to a withheld secret",
   "secret_published": false,
   "deterministic_under_secret": true,
-  "trace_sha256": "ed43a1d5ecf8b68ef39ee8e064c1391ce0aff65be7cc8336e80cf5535c9f981c",
-  "metric": "Cohen's kappa over all scored components; chance and constant predictions score 0",
+  "trace_sha256": "8fb4d76e5ef1617afff37ea2b6bb1dce770e465a32ca20a05b90b5503fcef76b",
+  "trace_sha256_method": "sha256 over the bytes of traces/<case_id>.npz, concatenated in truth.json order",
+  "metric": "Cohen's kappa over all scored components, clamped at 0",
   "scored_baselines": {
     "perfect": 1.0,
-    "reference_nnls_spectrum_gbm_all_16_acquisitions": 0.5797,
-    "reference_bootstrap_se": 0.0154,
-    "summary_statistics_quarter_train": 0.4533,
-    "reference_first_acquisition_only": 0.4285,
-    "estimate_parameters_then_apply_rule": 0.2052,
-    "prior_frequency_random": 0.002,
+    "reference_nnls_spectrum_gbm_all_16_acquisitions": 0.5086,
+    "reference_bootstrap_se": 0.0143,
+    "summary_statistics_quarter_train": 0.3729,
+    "reference_first_acquisition_only": 0.4156,
+    "hand_route_estimator_per_acquisition_no_learning": 0.2064,
+    "fit_then_threshold": 0.0606,
+    "prior_frequency_random": 0.0224,
     "all_resolved": 0.0
   },
-  "parameter_recovery_median_relative_error": {
-    "all_16_acquisitions": {"tau": 0.345, "amp": 0.517, "sigma": 0.008},
-    "first_acquisition_only": {"tau": 0.583, "amp": 0.681, "sigma": 0.044}
-  },
   "leak_audit": {
-    "previous_published_seed_generator_on_released_ids": 0.022,
-    "keyed_generator_guessed_keys": [0.0262, 0.0088, 0.0207],
+    "previous_published_seed_generator_on_released_ids": 0.0519,
+    "keyed_generator_guessed_keys": [
+      0.0798,
+      0.0527,
+      0.0683
+    ],
     "enumeration_content_matches": "0 of 1000 under every guessed key",
-    "null_band_100_random_keys": {"mean": 0.0254, "sd": 0.0154, "max": 0.0621},
-    "control_real_secret": {"kappa": 1.0, "content_matches": "1000 of 1000"},
+    "chance_band_1000_label_shuffles": {
+      "mean": 0.0591,
+      "sd": 0.0133,
+      "max": 0.1018,
+      "leak_bar_mean_plus_4sd": 0.1122
+    },
+    "control_real_secret": {
+      "kappa": 1.0,
+      "labels_exact": "1000 of 1000",
+      "content_matches": "1000 of 1000"
+    },
     "verdict": "clean"
   }
 }
